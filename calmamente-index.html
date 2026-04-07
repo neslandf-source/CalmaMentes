@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2d7a6e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="CalmaMente">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="description" content="Meditación, respiración y concentración en tu bolsillo">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>CalmaMente</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* ─── RESET & BASE ─── */
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+  :root {
+    --green:   #2d7a6e;
+    --green2:  #3a9e8e;
+    --dark:    #1e4840;
+    --light-bg:#faf9f6;
+    --card-shadow: 0 4px 14px rgba(0,0,0,.1);
+  }
+
+  html, body {
+    width:100%; height:100%;
+    font-family:'Nunito',sans-serif;
+    background:#1a3a30;
+    overflow:hidden;
+  }
+
+  /* ─── APP SHELL ─── */
+  #app {
+    width:100%;
+    height:100%;
+    max-width:430px;
+    margin:0 auto;
+    position:relative;
+    overflow:hidden;
+    background:#fefefe;
+    /* Safe area insets for notch phones */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* ─── PAGES ─── */
+  .page {
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    transition:transform .4s cubic-bezier(.4,0,.2,1), opacity .4s ease;
+    will-change:transform;
+  }
+  .page.hidden-right { transform:translateX(100%); opacity:0; pointer-events:none; }
+  .page.hidden-left  { transform:translateX(-100%); opacity:0; pointer-events:none; }
+
+  /* ─── SCROLLABLE SECTIONS ─── */
+  .scroll-area { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  .scroll-area::-webkit-scrollbar { display:none; }
+
+  /* ─── BOTTOM NAV ─── */
+  .bottom-nav {
+    display:flex; justify-content:space-around;
+    padding:10px 0 max(16px, env(safe-area-inset-bottom));
+    background:white; border-top:1px solid #eee;
+    flex-shrink:0;
+  }
+  .nav-item { display:flex; flex-direction:column; align-items:center; gap:3px; font-size:11px; font-weight:700; color:#aaa; cursor:pointer; user-select:none; }
+  .nav-item.active { color:var(--green); }
+  .nav-item .ni { font-size:22px; }
+
+  /* ════════════════════════════════
+     HOME PAGE
+  ════════════════════════════════ */
+  #homePage { background:#faf9f6; }
+
+  .hero {
+    background:linear-gradient(180deg,#c8e8e0 0%,#b5d9d4 30%,#d4eae5 60%,#e8f0eb 100%);
+    padding:max(50px, calc(env(safe-area-inset-top) + 30px)) 24px 28px;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+    flex-shrink:0;
+  }
+  .hero::before {
+    content:''; position:absolute; inset:-20px;
+    background:
+      radial-gradient(ellipse 80% 40% at 50% 20%,rgba(255,255,200,.3) 0%,transparent 70%),
+      radial-gradient(ellipse 60% 60% at 80% 80%,rgba(200,230,255,.3) 0%,transparent 70%);
+    pointer-events:none;
+  }
+  .logo-icon { font-size:34px; margin-bottom:4px; display:block; }
+  .logo-text  { font-size:28px; font-weight:800; color:var(--green); letter-spacing:-.5px; }
+  .tagline    { font-size:15px; font-weight:700; color:#3a5a55; margin:12px 0 20px; }
+
+  .btn-start {
+    background:linear-gradient(135deg,var(--green2),var(--green));
+    color:white; border:none; border-radius:50px;
+    padding:15px 36px; font-size:16px; font-weight:700;
+    font-family:'Nunito',sans-serif; cursor:pointer;
+    display:inline-flex; align-items:center; gap:10px;
+    box-shadow:0 8px 24px rgba(45,122,110,.4);
+    transition:transform .15s,box-shadow .15s;
+    width:85%; justify-content:center;
+    -webkit-appearance:none;
+  }
+  .btn-start:active { transform:scale(.97); }
+
+  .home-section { padding:18px 16px 8px; }
+  .section-title { font-size:15px; font-weight:800; color:#2a2a2a; margin-bottom:12px; }
+  .section-title span { font-weight:400; color:#777; }
+
+  .card {
+    border-radius:20px; overflow:hidden; margin-bottom:11px; cursor:pointer;
+    min-height:82px; display:flex; align-items:center;
+    transition:transform .15s,box-shadow .15s;
+    box-shadow:var(--card-shadow);
+    user-select:none;
+  }
+  .card:active { transform:scale(.98); }
+  .card-sleep     { background:linear-gradient(135deg,#1a2a6e,#4a3aa0 50%,#b0a0e0); }
+  .card-anxiety   { background:linear-gradient(135deg,#e07020,#f0a040 60%,#f8d080); }
+  .card-focus     { background:linear-gradient(135deg,#20a090,#40c0a0 60%,#80e0c0); }
+  .card-gratitude { background:linear-gradient(135deg,#e06040,#f09040 60%,#f8d090); }
+  .card-icon     { width:66px; height:66px; margin-left:12px; display:flex; align-items:center; justify-content:center; font-size:34px; flex-shrink:0; }
+  .card-content  { flex:1; padding:0 10px; }
+  .card-title    { font-size:16px; font-weight:800; color:white; line-height:1.2; text-shadow:0 1px 3px rgba(0,0,0,.2); }
+  .card-duration { font-size:12px; color:rgba(255,255,255,.85); font-weight:600; margin-top:3px; }
+  .card-arrow    { color:rgba(255,255,255,.8); font-size:20px; margin-right:14px; font-weight:700; }
+
+  /* ════════════════════════════════
+     CATALOG PAGE
+  ════════════════════════════════ */
+  #catalogPage { background:linear-gradient(160deg,#bfded8,#a8ccc8 40%,#c0d8d4); }
+
+  .std-header { padding:max(50px,calc(env(safe-area-inset-top)+28px)) 24px 14px; text-align:center; flex-shrink:0; position:relative; }
+  .std-title  { font-size:21px; font-weight:800; color:#1e4840; }
+
+  .back-btn {
+    position:absolute; left:18px; top:max(50px,calc(env(safe-area-inset-top)+28px));
+    background:rgba(45,122,110,.15); border:none; border-radius:50%;
+    width:38px; height:38px; font-size:22px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--dark); font-weight:800; line-height:1;
+  }
+  .back-btn:active { background:rgba(45,122,110,.3); }
+
+  .frosted-list {
+    margin:0 14px; background:rgba(255,255,255,.4);
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    border-radius:24px; padding:12px;
+    box-shadow:0 4px 24px rgba(0,0,0,.08),inset 0 0 0 1px rgba(255,255,255,.65);
+  }
+
+  .vcard {
+    display:flex; align-items:center; background:rgba(255,255,255,.72);
+    border-radius:16px; margin-bottom:10px; overflow:hidden; cursor:pointer;
+    transition:transform .15s; box-shadow:0 2px 10px rgba(0,0,0,.06);
+    user-select:none;
+  }
+  .vcard:last-child { margin-bottom:0; }
+  .vcard:active { transform:scale(.98); }
+  .vcard-thumb { width:100px; height:74px; flex-shrink:0; background:#b8ccc8; position:relative; overflow:hidden; border-radius:12px; margin:8px; }
+  .vcard-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+  .vcard-play { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.22); font-size:20px; color:white; }
+  .vcard-info  { flex:1; padding:10px 6px; }
+  .vcard-title { font-size:12px; font-weight:700; color:#1a3830; line-height:1.3; margin-bottom:3px; }
+  .vcard-meta  { font-size:11px; color:#60908a; font-weight:600; }
+  .vcard-arr   { font-size:18px; color:#a0c0b8; font-weight:700; margin-right:12px; flex-shrink:0; }
+
+  .frosted-nav {
+    display:flex; justify-content:space-around;
+    padding:10px 0 max(14px,env(safe-area-inset-bottom));
+    background:rgba(255,255,255,.55); border-top:1px solid rgba(255,255,255,.8);
+    flex-shrink:0; margin-top:10px;
+  }
+
+  /* ════════════════════════════════
+     PLAYER PAGE
+  ════════════════════════════════ */
+  #playerPage { background:#0d1f1c; }
+
+  .player-header {
+    display: flex; align-items: center; justify-content: center;
+    padding: max(40px, env(safe-area-inset-top)) 24px 20px; 
+    flex-shrink: 0; position: relative; z-index: 10;
+  }
+  .player-back-btn {
+    position: absolute; left: 18px; top: 50%; transform: translateY(-50%);
+    background: rgba(255,255,255,.1); border: none; border-radius: 50%;
+    width: 44px; height: 44px; font-size: 26px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; color: #a0d8d0; font-weight: 800;
+  }
+  .player-title { font-size: 16px; font-weight: 800; color: #c0e8e0; line-height: 1.3; padding: 0 60px; }
+
+  .yt-wrap {
+    position: relative; margin: 30px 14px 20px; border-radius: 18px; overflow: hidden;
+    flex-shrink: 0; background: #000; box-shadow: 0 8px 32px rgba(0,0,0,.6);
+    aspect-ratio: 16 / 9;
+  }
+  .yt-wrap iframe { position:absolute; top:0; left:0; width:100%; height:100%; border:none; }
+
+  .player-info { padding:14px 18px 4px; flex:1; overflow-y:auto; }
+  .player-cat  { display:inline-block; background:rgba(45,122,110,.3); color:#80d8c8; border-radius:30px; padding:3px 12px; font-size:11px; font-weight:700; margin-bottom:8px; }
+  .player-desc { font-size:12px; color:rgba(255,255,255,.5); line-height:1.6; }
+
+  .related-lbl    { font-size:12px; font-weight:800; color:#80d8c8; padding:10px 18px 6px; flex-shrink:0; }
+  .related-scroll { display:flex; gap:9px; padding:0 18px 12px; overflow-x:auto; flex-shrink:0; }
+  .related-scroll::-webkit-scrollbar { display:none; }
+  .rel-chip { flex-shrink:0; display:flex; align-items:center; gap:7px; background:rgba(255,255,255,.08); border-radius:50px; padding:5px 12px 5px 7px; cursor:pointer; border:1px solid rgba(255,255,255,.08); }
+  .rel-chip img  { width:30px; height:30px; border-radius:50%; object-fit:cover; }
+  .rel-chip span { font-size:11px; font-weight:700; color:rgba(255,255,255,.75); white-space:nowrap; max-width:90px; overflow:hidden; text-overflow:ellipsis; }
+
+  .player-nav { display:flex; justify-content:space-around; padding:10px 0 max(14px,env(safe-area-inset-bottom)); background:rgba(255,255,255,.05); border-top:1px solid rgba(255,255,255,.08); flex-shrink:0; }
+  .player-nav .nav-item { color:rgba(255,255,255,.3); }
+  .player-nav .nav-item.active { color:#60c8b8; }
+
+  /* ════════════════════════════════
+     ANXIETY PAGE
+  ════════════════════════════════ */
+  #anxietyPage { background:linear-gradient(160deg,#b8d8e8,#c8e4e0 40%,#d8ecd8); }
+
+  .anx-content { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:10px 18px; display:flex; flex-direction:column; align-items:center; gap:14px; }
+
+  .round-pill { font-size:13px; font-weight:700; color:#3a6a60; background:rgba(255,255,255,.5); padding:5px 16px; border-radius:30px; backdrop-filter:blur(4px); }
+
+  .box-wrap { position:relative; width:252px; height:252px; flex-shrink:0; }
+  .box-border { position:absolute; inset:0; border-radius:22px; border:3px solid rgba(45,122,110,.25); background:rgba(255,255,255,.35); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); box-shadow:0 8px 32px rgba(45,122,110,.15),inset 0 0 0 1px rgba(255,255,255,.6); }
+  .cdot { position:absolute; width:10px; height:10px; border-radius:50%; background:rgba(45,122,110,.3); }
+
+  .side-lbl { position:absolute; font-size:11px; font-weight:700; color:var(--green); text-align:center; pointer-events:none; opacity:.6; transition:opacity .3s,color .3s; }
+  .side-lbl.active-side { opacity:1; font-weight:800; color:#1a5a50; }
+  .lbl-top    { top:42%;   left:50%; transform:translate(-50%,-50%); }
+  .lbl-right  { right:0px; top:50%; transform:translate(0,-50%) rotate(90deg); }
+  .lbl-bottom { bottom:42%; left:50%; transform:translate(-50%,50%); }
+  .lbl-left   { left:0px;  top:50%; transform:translate(0,-50%) rotate(-90deg); }
+
+  .box-center { position:absolute; inset:46px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+  .bp  { font-size:14px; font-weight:800; color:#1e4840; line-height:1.2; }
+  .bc  { font-size:36px; font-weight:800; color:var(--green); line-height:1; margin-top:2px; }
+  .bi  { font-size:10px; font-weight:700; color:#5a9a90; margin-top:3px; line-height:1.3; white-space:pre-line; }
+
+  .tdot { position:absolute; width:18px; height:18px; border-radius:50%; background:radial-gradient(circle at 40% 35%,#fff 0%,var(--green2) 60%); box-shadow:0 0 12px rgba(58,158,142,.7); top:-9px; left:-9px; }
+
+  .breath-row { display:flex; gap:10px; width:100%; }
+  .bbtn { flex:1; padding:12px 0; border:none; border-radius:50px; font-size:13px; font-weight:800; font-family:'Nunito',sans-serif; cursor:pointer; }
+  .bbtn-go    { background:linear-gradient(135deg,var(--green2),var(--green)); color:white; box-shadow:0 6px 20px rgba(45,122,110,.35); }
+  .bbtn-reset { background:rgba(255,255,255,.6); color:var(--green); border:2px solid rgba(45,122,110,.2); }
+  .bbtn:active { transform:scale(.97); }
+
+  .steps-card { width:100%; background:rgba(255,255,255,.5); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border-radius:18px; padding:14px; box-shadow:0 4px 16px rgba(0,0,0,.06); }
+  .steps-t { font-size:13px; font-weight:800; color:#1e4840; margin-bottom:8px; }
+  .srow  { display:flex; align-items:flex-start; gap:9px; margin-bottom:7px; }
+  .srow:last-child { margin-bottom:0; }
+  .snum  { width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg,var(--green2),var(--green)); color:white; font-size:10px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+  .stxt  { font-size:11px; font-weight:600; color:#2a4a44; line-height:1.4; }
+  .sh    { color:var(--green); font-weight:800; }
+
+  .anx-nav { display:flex; justify-content:space-around; padding:10px 0 max(14px,env(safe-area-inset-bottom)); background:rgba(255,255,255,.55); border-top:1px solid rgba(255,255,255,.8); flex-shrink:0; }
+
+  /* ════════════════════════════════
+     FOCUS PAGE
+  ════════════════════════════════ */
+  #focusPage { background:linear-gradient(160deg,#1a2a4a,#1e3a5a 50%,#162840); }
+
+  .focus-header { padding:max(50px,calc(env(safe-area-inset-top)+28px)) 24px 8px; text-align:center; flex-shrink:0; position:relative; }
+  .focus-back { position:absolute; left:18px; top:max(50px,calc(env(safe-area-inset-top)+28px)); background:rgba(255,255,255,.1); border:none; border-radius:50%; width:38px; height:38px; font-size:22px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#a0c8f0; font-weight:800; }
+  .focus-title { font-size:20px; font-weight:800; color:#c8e0ff; }
+  .focus-sub   { font-size:11px; color:#6080a0; font-weight:600; margin-top:2px; }
+
+  .focus-scroll { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:10px 16px; display:flex; flex-direction:column; gap:12px; }
+
+  .tips-lbl { font-size:11px; font-weight:800; color:#6090c0; text-transform:uppercase; letter-spacing:1px; }
+
+  .tips-row { display:flex; gap:9px; overflow-x:auto; padding-bottom:4px; }
+  .tips-row::-webkit-scrollbar { display:none; }
+  .tip-card { flex-shrink:0; width:130px; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:12px 10px; text-align:center; }
+  .tip-ico  { font-size:26px; margin-bottom:5px; display:block; }
+  .tip-t    { font-size:11px; font-weight:800; color:#c0d8f8; line-height:1.2; margin-bottom:3px; }
+  .tip-d    { font-size:10px; color:#5070a0; font-weight:600; line-height:1.4; }
+
+  .divider { display:flex; align-items:center; gap:8px; }
+  .div-line { flex:1; height:1px; background:rgba(255,255,255,.1); }
+  .div-txt  { font-size:10px; font-weight:800; color:#4060a0; white-space:nowrap; }
+
+  /* game box */
+  .game-box { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:20px; padding:16px; display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .game-title { font-size:14px; font-weight:800; color:#a0c8ff; text-align:center; }
+  .game-desc  { font-size:11px; color:#5070a0; font-weight:600; text-align:center; line-height:1.4; }
+
+  .game-meta { display:flex; gap:12px; justify-content:center; }
+  .mpill { background:rgba(255,255,255,.08); border-radius:30px; padding:4px 12px; font-size:12px; font-weight:800; color:#80b0e0; }
+  .mpill span { color:#60d0b0; }
+
+  .mem-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:7px; width:100%; }
+
+  .mc { aspect-ratio:1; border-radius:11px; cursor:pointer; position:relative; perspective:600px; user-select:none; }
+  .mc:active { transform:scale(.92); }
+  .mc-inner { width:100%; height:100%; position:relative; transform-style:preserve-3d; transition:transform .4s cubic-bezier(.4,0,.2,1); border-radius:11px; }
+  .mc.flipped .mc-inner, .mc.matched .mc-inner { transform:rotateY(180deg); }
+  .mc-front, .mc-back { position:absolute; inset:0; border-radius:11px; display:flex; align-items:center; justify-content:center; backface-visibility:hidden; -webkit-backface-visibility:hidden; }
+  .mc-front { background:linear-gradient(135deg,#1e3060,#2a4080); border:1px solid rgba(255,255,255,.12); font-size:16px; color:rgba(255,255,255,.15); }
+  .mc-back  { background:linear-gradient(135deg,#1e5a50,#2a7a68); border:1px solid rgba(80,200,180,.3); transform:rotateY(180deg); font-size:20px; }
+  .mc.matched .mc-back { background:linear-gradient(135deg,#2a6a20,#3a8a30); border-color:rgba(100,220,100,.4); animation:mpop .4s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes mpop { 0%{transform:rotateY(180deg) scale(1)} 50%{transform:rotateY(180deg) scale(1.14)} 100%{transform:rotateY(180deg) scale(1)} }
+
+  .gbtn { width:100%; padding:12px; border:none; border-radius:50px; font-size:13px; font-weight:800; font-family:'Nunito',sans-serif; cursor:pointer; }
+  .gbtn-primary { background:linear-gradient(135deg,var(--green2),var(--green)); color:white; box-shadow:0 6px 20px rgba(45,122,110,.4); }
+  .gbtn:active { transform:scale(.97); }
+
+  .win-screen { display:none; flex-direction:column; align-items:center; gap:9px; text-align:center; padding:8px 0; }
+  .win-screen.visible { display:flex; }
+  .win-emoji { font-size:48px; animation:wiggle 1s ease-in-out infinite alternate; }
+  @keyframes wiggle { from{transform:rotate(-8deg) scale(1)} to{transform:rotate(8deg) scale(1.1)} }
+  .win-title { font-size:19px; font-weight:800; color:#80ffcc; }
+  .win-score { font-size:14px; font-weight:800; color:#60d0b0; }
+  .win-sub   { font-size:12px; color:#5090a0; font-weight:700; line-height:1.5; white-space:pre-line; }
+  .win-cta   { background:linear-gradient(135deg,#f0a030,#e07820); color:white; border:none; border-radius:50px; padding:13px 26px; font-size:14px; font-weight:800; font-family:'Nunito',sans-serif; cursor:pointer; box-shadow:0 8px 24px rgba(224,120,32,.4); animation:pcta 1.5s ease-in-out infinite; }
+  @keyframes pcta { 0%,100%{box-shadow:0 8px 24px rgba(224,120,32,.4)} 50%{box-shadow:0 12px 32px rgba(224,120,32,.7)} }
+
+  .focus-nav { display:flex; justify-content:space-around; padding:10px 0 max(14px,env(safe-area-inset-bottom)); background:rgba(0,0,0,.3); border-top:1px solid rgba(255,255,255,.08); flex-shrink:0; }
+  .focus-nav .nav-item { color:rgba(255,255,255,.3); }
+  .focus-nav .nav-item.active { color:#60d0b0; }
+
+  /* ─── INSTALL BANNER ─── */
+  #installBanner {
+    display:none; position:fixed; bottom:0; left:0; right:0;
+    background:linear-gradient(135deg,var(--green2),var(--green));
+    color:white; padding:14px 20px max(14px,env(safe-area-inset-bottom));
+    font-family:'Nunito',sans-serif;
+    z-index:1000; box-shadow:0 -4px 20px rgba(0,0,0,.3);
+    align-items:center; gap:12px;
+  }
+  #installBanner.show { display:flex; }
+  #installBanner p   { flex:1; font-size:13px; font-weight:700; line-height:1.3; }
+  #installBanner p strong { display:block; font-size:15px; }
+  .install-btn { background:white; color:var(--green); border:none; border-radius:50px; padding:8px 18px; font-size:13px; font-weight:800; font-family:'Nunito',sans-serif; cursor:pointer; white-space:nowrap; }
+  .install-close { background:none; border:none; color:rgba(255,255,255,.7); font-size:20px; cursor:pointer; padding:0 4px; }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ══════════ HOME ══════════ -->
+  <div class="page" id="homePage">
+    <div class="hero">
+      <span class="logo-icon">🌿</span>
+      <div class="logo-text">CalmaMente</div>
+      <div class="tagline">Respira, todo estará bien.</div>
+      <button class="btn-start" onclick="goToCatalog()">▶ Iniciar meditación</button>
+    </div>
+
+    <div class="scroll-area">
+      <div class="home-section">
+        <div class="section-title">Empieza con una <span>meditación</span></div>
+
+        <div class="card card-sleep" onclick="openPlayer(0)">
+          <div class="card-icon">🌙</div>
+          <div class="card-content"><div class="card-title">Meditación<br>para dormir</div><div class="card-duration">20 min</div></div>
+          <div class="card-arrow">›</div>
+        </div>
+
+        <div class="card card-anxiety" onclick="goToAnxiety()">
+          <div class="card-icon">🧘‍♀️</div>
+          <div class="card-content"><div class="card-title">Reducir ansiedad</div><div class="card-duration">15 min</div></div>
+          <div class="card-arrow">›</div>
+        </div>
+
+        <div class="card card-focus" onclick="goToFocus()">
+          <div class="card-icon">🎯</div>
+          <div class="card-content"><div class="card-title">Concentración</div><div class="card-duration">10 min</div></div>
+          <div class="card-arrow">›</div>
+        </div>
+
+        <div class="card card-gratitude" onclick="openPlayer(4)">
+          <div class="card-icon">🌅</div>
+          <div class="card-content"><div class="card-title">Gratitud</div><div class="card-duration">5 min</div></div>
+          <div class="card-arrow">›</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-nav">
+      <div class="nav-item active"><span class="ni">🏠</span>Inicio</div>
+      <div class="nav-item" onclick="goToCatalog()"><span class="ni">🔍</span>Explorar</div>
+      <div class="nav-item" onclick="goToFavorites()"><span class="ni">🤍</span>Favoritos</div>
+      <div class="nav-item" onclick="goToProfile()"><span class="ni">👤</span>Perfil</div>
+    </div>
+  </div>
+
+  <!-- ══════════ CATALOG ══════════ -->
+  <div class="page hidden-right" id="catalogPage">
+    <div class="std-header">
+      <button class="back-btn" onclick="goToHome()">‹</button>
+      <div class="std-title">Elige una meditación</div>
+    </div>
+    <div class="scroll-area" style="padding:0 0 10px">
+      <div class="frosted-list" id="catalogList"></div>
+    </div>
+    <div class="frosted-nav">
+      <div class="nav-item" onclick="goToHome()"><span class="ni">🏠</span>Inicio</div>
+      <div class="nav-item active"><span class="ni">🔍</span>Explorar</div>
+      <div class="nav-item" onclick="goToFavorites()"><span class="ni">🤍</span>Favoritos</div>
+      <div class="nav-item" onclick="goToProfile()"><span class="ni">👤</span>Perfil</div>
+    </div>
+  </div>
+
+  <!-- ══════════ PLAYER ══════════ -->
+  <div class="page hidden-right" id="playerPage">
+    <div class="player-header">
+      <button class="player-back-btn" onclick="backToCatalog()">‹</button>
+      <div class="player-title" id="playerTitle">Meditación</div>
+    </div>
+    <div class="yt-wrap"><iframe id="ytFrame" src="" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe></div>
+    <div class="player-info">
+      <span class="player-cat" id="playerCat"></span>
+      <p class="player-desc" id="playerDesc"></p>
+    </div>
+    <div class="related-lbl">Más meditaciones</div>
+    <div class="related-scroll" id="relatedScroll"></div>
+    <div class="player-nav">
+      <div class="nav-item" onclick="goToHome()"><span class="ni">🏠</span>Inicio</div>
+      <div class="nav-item active"><span class="ni">▶</span>Reproducir</div>
+      <div class="nav-item" onclick="goToFavorites()"><span class="ni">🤍</span>Favoritos</div>
+      <div class="nav-item" onclick="goToProfile()"><span class="ni">👤</span>Perfil</div>
+    </div>
+  </div>
+
+  <!-- ══════════ ANXIETY ══════════ -->
+  <div class="page hidden-right" id="anxietyPage">
+    <div class="std-header">
+      <button class="back-btn" onclick="goToHome()">‹</button>
+      <div class="std-title">Reducir ansiedad</div>
+      <div style="font-size:11px;color:#4a7a70;font-weight:600;margin-top:2px">Respiración diafragmática cuadrada</div>
+    </div>
+
+    <div class="anx-content">
+      <div class="round-pill" id="roundCounter">Ronda 1 de 4</div>
+
+      <div class="box-wrap">
+        <div class="box-border"></div>
+        <div class="cdot" style="top:-5px;left:-5px"></div>
+        <div class="cdot" style="top:-5px;right:-5px"></div>
+        <div class="cdot" style="bottom:-5px;right:-5px"></div>
+        <div class="cdot" style="bottom:-5px;left:-5px"></div>
+        <div class="side-lbl lbl-top"    id="lblTop">INHALA</div>
+        <div class="side-lbl lbl-right"  id="lblRight">SOSTÉN</div>
+        <div class="side-lbl lbl-bottom" id="lblBottom">EXHALA</div>
+        <div class="side-lbl lbl-left"   id="lblLeft">SOSTÉN</div>
+        <div class="box-center">
+          <div class="bp" id="boxPhase">Listo</div>
+          <div class="bc" id="boxCount">4</div>
+          <div class="bi" id="boxInstr">Presiona Iniciar&#10;para comenzar</div>
+        </div>
+        <div class="tdot" id="travelDot"></div>
+      </div>
+
+      <div class="breath-row">
+        <button class="bbtn bbtn-go" id="startBtn" onclick="toggleBreathing()">▶ Iniciar</button>
+        <button class="bbtn bbtn-reset" onclick="resetBreathing()">↺ Reiniciar</button>
+      </div>
+
+      <div class="steps-card">
+        <div class="steps-t">¿Cómo funciona?</div>
+        <div class="srow"><div class="snum">1</div><div class="stxt">⬆️ <span class="sh">Inhala</span> por la nariz 4 segundos</div></div>
+        <div class="srow"><div class="snum">2</div><div class="stxt">➡️ <span class="sh">Sostén</span> el aire 4 segundos</div></div>
+        <div class="srow"><div class="snum">3</div><div class="stxt">⬇️ <span class="sh">Exhala</span> lentamente 4 segundos</div></div>
+        <div class="srow"><div class="snum">4</div><div class="stxt">⬅️ <span class="sh">Sostén</span> vacío 4 segundos</div></div>
+      </div>
+    </div>
+
+    <div class="anx-nav">
+      <div class="nav-item" onclick="goToHome()"><span class="ni">🏠</span>Inicio</div>
+      <div class="nav-item active"><span class="ni">🌬️</span>Respira</div>
+      <div class="nav-item" onclick="goToFavorites()"><span class="ni">🤍</span>Favoritos</div>
+      <div class="nav-item" onclick="goToProfile()"><span class="ni">👤</span>Perfil</div>
+    </div>
+  </div>
+
+  <!-- ══════════ FOCUS ══════════ -->
+  <div class="page hidden-right" id="focusPage">
+    <div class="focus-header">
+      <button class="focus-back" onclick="goToHome()">‹</button>
+      <div class="focus-title">Concentración</div>
+      <div class="focus-sub">Tips + entrena tu mente</div>
+    </div>
+
+    <div class="focus-scroll">
+
+      <div class="tips-lbl">💡 Tips para concentrarte</div>
+      <div class="tips-row">
+        <div class="tip-card"><span class="tip-ico">📵</span><div class="tip-t">Silencia el ruido</div><div class="tip-d">Modo avión 25 min antes de empezar</div></div>
+        <div class="tip-card"><span class="tip-ico">🍅</span><div class="tip-t">Técnica Pomodoro</div><div class="tip-d">25 min enfocado, 5 min descanso</div></div>
+        <div class="tip-card"><span class="tip-ico">🧠</span><div class="tip-t">Una sola tarea</div><div class="tip-d">El multitasking baja productividad 40%</div></div>
+        <div class="tip-card"><span class="tip-ico">💧</span><div class="tip-t">Hidratación</div><div class="tip-d">Agua mejora concentración hasta 30%</div></div>
+        <div class="tip-card"><span class="tip-ico">🌿</span><div class="tip-t">Rodéate de verde</div><div class="tip-d">Las plantas reducen la fatiga mental</div></div>
+      </div>
+
+      <div class="divider">
+        <div class="div-line"></div>
+        <div class="div-txt">🎮 MINIJUEGO DE MEMORIA</div>
+        <div class="div-line"></div>
+      </div>
+
+      <div class="game-box">
+        <div class="game-title">Encuentra los pares 🃏</div>
+        <div class="game-desc" id="gameDesc">Voltea las cartas de dos en dos y encuentra todos los pares. ¡Activa tu mente!</div>
+
+        <div class="game-meta" id="gameMeta">
+          <div class="mpill">Movimientos: <span id="moveCount">0</span></div>
+          <div class="mpill">Pares: <span id="pairCount">0</span>/8</div>
+        </div>
+
+        <div class="mem-grid" id="memGrid"></div>
+
+        <div class="win-screen" id="winScreen">
+          <div class="win-emoji">🏆</div>
+          <div class="win-title">¡Mente afilada!</div>
+          <div class="win-score" id="winScore">Lo lograste en 0 movimientos</div>
+          <div class="win-sub">Tu cerebro está listo y encendido.&#10;¡Ahora ve a por ello!</div>
+          <button class="win-cta" onclick="goToHome()">💪 ¡Ahora sí, a lo que toca!</button>
+          <button class="gbtn gbtn-primary" style="margin-top:2px" onclick="initGame()">↺ Jugar de nuevo</button>
+        </div>
+
+        <button class="gbtn gbtn-primary" id="restartBtn" onclick="initGame()">↺ Reiniciar</button>
+      </div>
+
+    </div>
+
+    <div class="focus-nav bottom-nav">
+      <div class="nav-item" onclick="goToHome()"><span class="ni">🏠</span>Inicio</div>
+      <div class="nav-item active"><span class="ni">🎯</span>Foco</div>
+      <div class="nav-item" onclick="goToFavorites()"><span class="ni">🤍</span>Favoritos</div>
+      <div class="nav-item" onclick="goToProfile()"><span class="ni">👤</span>Perfil</div>
+    </div>
+  </div>
+
+  <!-- ══════════ FAVORITOS ══════════ -->
+  <div class="page hidden-right" id="favoritesPage">
+    <div class="std-header">
+      <button class="back-btn" onclick="goToHome()">‹</button>
+      <div class="std-title">Tus Favoritos</div>
+      <div style="font-size:11px;color:#4a7a70;font-weight:600;margin-top:2px">Lo que te da paz</div>
+    </div>
+    <div class="scroll-area" style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding: 20px;">
+      <div style="font-size:50px; margin-bottom:10px;">🍃</div>
+      <div style="font-size:18px; font-weight:800; color:#1e4840;">Sin favoritos aún</div>
+      <div style="font-size:14px; color:#555; margin-top:8px; line-height:1.4;">Explora y guarda las meditaciones que más te gusten para tenerlas a la mano.</div>
+      <button class="btn-start" style="margin-top:24px; width:auto; padding:12px 28px; font-size:14px;" onclick="goToCatalog()">Explorar ahora</button>
+    </div>
+    <div class="frosted-nav">
+      <div class="nav-item" onclick="goToHome()"><span class="ni">🏠</span>Inicio</div>
+      <div class="nav-item" onclick="goToCatalog()"><span class="ni">🔍</span>Explorar</div>
+      <div class="nav-item active"><span class="ni">🤍</span>Favoritos</div>
+      <div class="nav-item" onclick="goToProfile()"><span class="ni">👤</span>Perfil</div>
+    </div>
+  </div>
+
+  <!-- ══════════ PERFIL ══════════ -->
+  <div class="page hidden-right" id="profilePage" style="background:linear-gradient(160deg,#e8f0eb,#d4eae5 40%,#c8e8e0);">
+    <div class="std-header">
+      <button class="back-btn" onclick="goToHome()">‹</button>
+      <div class="std-title">Tú</div>
+    </div>
+    <div class="scroll-area" style="padding: 20px;">
+      <div style="background:rgba(255,255,255,0.7); backdrop-filter:blur(10px); border-radius:20px; padding:24px; text-align:center; box-shadow:var(--card-shadow); margin-bottom:20px; border:1px solid rgba(255,255,255,0.8);">
+        <div style="width:76px; height:76px; border-radius:50%; background:linear-gradient(135deg,var(--green2),var(--green)); color:white; display:inline-flex; align-items:center; justify-content:center; font-size:36px; margin-bottom:14px; box-shadow:0 6px 16px rgba(45,122,110,.3);">🧘</div>
+        <div style="font-size:18px; font-weight:800; color:#1e4840;">Usuario Calma</div>
+        <div style="font-size:13px; color:#4a7a70; font-weight:700; margin-top:2px;">En paz y progreso</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.7); backdrop-filter:blur(10px); border-radius:18px; overflow:hidden; box-shadow:var(--card-shadow); border:1px solid rgba(255,255,255,0.8);">
+        <div style="padding:16px 18px; border-bottom:1px solid rgba(0,0,0,0.05); color:#2a4a44; font-weight:700; display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; align-items:center; gap:10px;"><span style="font-size:18px;">⏱️</span> Minutos meditados</div> <span style="font-size:15px; font-weight:800; color:var(--green);">0</span>
+        </div>
+        <div style="padding:16px 18px; border-bottom:1px solid rgba(0,0,0,0.05); color:#2a4a44; font-weight:700; display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; align-items:center; gap:10px;"><span style="font-size:18px;">🔥</span> Racha actual</div> <span style="font-size:15px; font-weight:800; color:var(--green);">1 día</span>
+        </div>
+        <div style="padding:16px 18px; color:#2a4a44; font-weight:700; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="alert('Configuración próximamente')">
+          <div style="display:flex; align-items:center; gap:10px;"><span style="font-size:18px;">⚙️</span> Configuración</div> <span style="font-size:20px; font-weight:800; color:#aaa; margin-right:4px;">›</span>
+        </div>
+      </div>
+    </div>
+    <div class="frosted-nav">
+      <div class="nav-item" onclick="goToHome()"><span class="ni">🏠</span>Inicio</div>
+      <div class="nav-item" onclick="goToCatalog()"><span class="ni">🔍</span>Explorar</div>
+      <div class="nav-item" onclick="goToFavorites()"><span class="ni">🤍</span>Favoritos</div>
+      <div class="nav-item active"><span class="ni">👤</span>Perfil</div>
+    </div>
+  </div>
+
+</div><!-- #app -->
+
+<!-- Install Banner -->
+<div id="installBanner">
+  <p><strong>Instalar CalmaMente</strong>Añade la app a tu pantalla de inicio</p>
+  <button class="install-btn" id="installBtn">Instalar</button>
+  <button class="install-close" onclick="document.getElementById('installBanner').classList.remove('show')">✕</button>
+</div>
+
+<script>
+/* ══════════════════════════════════
+   SERVICE WORKER REGISTRATION
+══════════════════════════════════ */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+
+/* PWA Install prompt */
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBanner').classList.add('show');
+});
+document.getElementById('installBtn').onclick = async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('installBanner').classList.remove('show');
+};
+
+/* ══════════════════════════════════
+   VIDEOS DATA
+══════════════════════════════════ */
+const VIDEOS = [
+  { id:'IShkpOm63gg', title:'Meditación guiada para la paz interior', cat:'🌿 Relajación',    desc:'Una meditación suave para encontrar paz y serenidad en cualquier momento del día.' },
+  { id:'-OQWTMrPTPE', title:'Respiración y calma profunda',            cat:'🌬️ Mindfulness',  desc:'Ejercicios de respiración para liberar tensión y calmar la mente rápidamente.' },
+  { id:'aBsnQjJ2_Nk', title:'Meditación para reducir el estrés',       cat:'🌸 Bienestar',    desc:'Disuelve el estrés del día a día con esta práctica guiada de relajación profunda.' },
+  { id:'3oCC4NDgYrY', title:'Concentración y enfoque mental',           cat:'🎯 Concentración',desc:'Potencia tu atención y claridad mental para rendir al máximo.' },
+  { id:'-rApLYVB4cI', title:'Meditación de gratitud y amor',            cat:'🌅 Gratitud',     desc:'Abre tu corazón a la gratitud y cultiva una actitud positiva ante la vida.' },
+];
+
+/* Build catalog */
+const catList = document.getElementById('catalogList');
+VIDEOS.forEach((v, i) => {
+  const el = document.createElement('div');
+  el.className = 'vcard';
+  el.innerHTML = `
+    <div class="vcard-thumb">
+      <img src="https://img.youtube.com/vi/${v.id}/mqdefault.jpg" alt="" loading="lazy">
+      <div class="vcard-play">▶</div>
+    </div>
+    <div class="vcard-info">
+      <div class="vcard-title">${v.title}</div>
+      <div class="vcard-meta">${v.cat}</div>
+    </div>
+    <div class="vcard-arr">›</div>`;
+  el.onclick = () => openPlayer(i);
+  catList.appendChild(el);
+});
+
+function openPlayer(idx) {
+  const v = VIDEOS[idx];
+  document.getElementById('playerTitle').textContent = v.title;
+  document.getElementById('playerCat').textContent   = v.cat;
+  document.getElementById('playerDesc').textContent  = v.desc;
+  document.getElementById('ytFrame').src = `https://www.youtube.com/embed/${v.id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
+  const sc = document.getElementById('relatedScroll');
+  sc.innerHTML = '';
+  VIDEOS.forEach((rv, ri) => {
+    if (ri === idx) return;
+    const c = document.createElement('div');
+    c.className = 'rel-chip';
+    c.innerHTML = `<img src="https://img.youtube.com/vi/${rv.id}/mqdefault.jpg" loading="lazy"><span>${rv.title}</span>`;
+    c.onclick = () => openPlayer(ri);
+    sc.appendChild(c);
+  });
+  show('playerPage'); hide('catalogPage');
+}
+
+function backToCatalog() {
+  document.getElementById('ytFrame').src = '';
+  show('catalogPage'); hide('playerPage');
+}
+
+/* ══════════════════════════════════
+   NAVIGATION
+══════════════════════════════════ */
+const PAGES = ['homePage','catalogPage','playerPage','anxietyPage','focusPage', 'favoritesPage', 'profilePage'];
+function show(id) { document.getElementById(id).classList.remove('hidden-right'); }
+function hide(id) { document.getElementById(id).classList.add('hidden-right'); }
+
+function goToHome() {
+  document.getElementById('ytFrame').src = '';
+  resetBreathing();
+  PAGES.filter(p => p !== 'homePage').forEach(hide);
+  show('homePage');
+}
+function goToCatalog() { PAGES.filter(p => p !== 'catalogPage').forEach(hide); show('catalogPage'); }
+function goToAnxiety() { PAGES.filter(p => p !== 'anxietyPage').forEach(hide); show('anxietyPage'); }
+function goToFocus()   { PAGES.filter(p => p !== 'focusPage').forEach(hide); show('focusPage'); initGame(); }
+function goToFavorites() { PAGES.filter(p => p !== 'favoritesPage').forEach(hide); show('favoritesPage'); }
+function goToProfile()   { PAGES.filter(p => p !== 'profilePage').forEach(hide); show('profilePage'); }
+
+/* ══════════════════════════════════
+   BOX BREATHING
+══════════════════════════════════ */
+const BPHASES = [
+  { name:'Inhala', instr:'Respira profundo\npor la nariz', side:'top' },
+  { name:'Sostén', instr:'Mantén el aire\ncon suavidad',  side:'right' },
+  { name:'Exhala', instr:'Suelta el aire\nlentamente',    side:'bottom' },
+  { name:'Sostén', instr:'Pulmones vacíos\ncon calma',    side:'left' },
+];
+const BLABELS = {
+  top:    document.getElementById('lblTop'),
+  right:  document.getElementById('lblRight'),
+  bottom: document.getElementById('lblBottom'),
+  left:   document.getElementById('lblLeft'),
+};
+const BSIZE = 252, BSTEP = 4, BROUNDS = 4;
+const CORNERS = [{x:0,y:0},{x:BSIZE,y:0},{x:BSIZE,y:BSIZE},{x:0,y:BSIZE}];
+let bRunning = false, bRaf = null, bStart = null;
+
+function setDot(ph, t) {
+  const f = CORNERS[ph], e = CORNERS[(ph+1)%4];
+  const d = document.getElementById('travelDot');
+  d.style.transform = `translate(${f.x+(e.x-f.x)*t}px,${f.y+(e.y-f.y)*t}px)`;
+}
+
+function breathUI(ph, count, round) {
+  document.getElementById('boxPhase').textContent  = BPHASES[ph].name;
+  document.getElementById('boxCount').textContent  = count;
+  document.getElementById('boxInstr').textContent  = BPHASES[ph].instr;
+  document.getElementById('roundCounter').textContent = `Ronda ${round+1} de ${BROUNDS}`;
+  Object.entries(BLABELS).forEach(([s,el]) => el.classList.toggle('active-side', s === BPHASES[ph].side));
+}
+
+function breathLoop(ts) {
+  if (!bStart) bStart = ts;
+  const tot = (ts - bStart) / 1000;
+  const cycle = BSTEP * 4, total = cycle * BROUNDS;
+  if (tot >= total) { finishBreath(); return; }
+  const w = tot % cycle, ph = Math.floor(w / BSTEP), wp = w - ph * BSTEP;
+  setDot(ph, wp / BSTEP);
+  breathUI(ph, Math.max(1, Math.ceil(BSTEP - wp)), Math.floor(tot / cycle));
+  bRaf = requestAnimationFrame(breathLoop);
+}
+
+function toggleBreathing() {
+  if (!bRunning) {
+    bRunning = true; bStart = null;
+    document.getElementById('startBtn').textContent = '⏸ Pausar';
+    bRaf = requestAnimationFrame(breathLoop);
+  } else {
+    bRunning = false; cancelAnimationFrame(bRaf);
+    document.getElementById('startBtn').textContent = '▶ Reanudar';
+  }
+}
+
+function resetBreathing() {
+  bRunning = false;
+  if (bRaf) cancelAnimationFrame(bRaf);
+  bRaf = null; bStart = null;
+  document.getElementById('startBtn').textContent = '▶ Iniciar';
+  document.getElementById('boxPhase').textContent = 'Listo';
+  document.getElementById('boxCount').textContent = '4';
+  document.getElementById('boxInstr').textContent = 'Presiona Iniciar\npara comenzar';
+  document.getElementById('roundCounter').textContent = 'Ronda 1 de 4';
+  setDot(0, 0);
+  Object.values(BLABELS).forEach(el => el.classList.remove('active-side'));
+}
+
+function finishBreath() {
+  bRunning = false; cancelAnimationFrame(bRaf);
+  document.getElementById('startBtn').textContent = '▶ Iniciar';
+  document.getElementById('boxPhase').textContent = '¡Bien hecho!';
+  document.getElementById('boxCount').textContent = '🌿';
+  document.getElementById('boxInstr').textContent = 'Completaste\n4 rondas 🎉';
+  document.getElementById('roundCounter').textContent = '✓ Completado';
+  setDot(0, 0);
+  Object.values(BLABELS).forEach(el => el.classList.remove('active-side'));
+}
+setDot(0, 0);
+
+/* ══════════════════════════════════
+   MEMORY GAME
+══════════════════════════════════ */
+const EMOJIS = ['🌙','🌺','🦋','⭐','🌊','🍃','🔮','💎'];
+let gCards = [], gFlipped = [], gMatched = 0, gMoves = 0, gBusy = false;
+
+function initGame() {
+  const grid = document.getElementById('memGrid');
+  grid.innerHTML = ''; gFlipped = []; gMatched = 0; gMoves = 0; gBusy = false;
+  document.getElementById('moveCount').textContent = '0';
+  document.getElementById('pairCount').textContent = '0';
+  document.getElementById('winScreen').classList.remove('visible');
+  document.getElementById('restartBtn').style.display = '';
+  document.getElementById('gameDesc').style.display = '';
+  document.getElementById('gameMeta').style.display = 'flex';
+  grid.style.display = 'grid';
+
+  const deck = [...EMOJIS, ...EMOJIS].sort(() => Math.random() - .5);
+  gCards = [];
+  deck.forEach((emoji, i) => {
+    const card = document.createElement('div');
+    card.className = 'mc';
+    card.innerHTML = `<div class="mc-inner"><div class="mc-front">✦</div><div class="mc-back">${emoji}</div></div>`;
+    card.dataset.emoji = emoji;
+    card.onclick = () => flipCard(card);
+    grid.appendChild(card);
+    gCards.push(card);
+  });
+}
+
+function flipCard(card) {
+  if (gBusy || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+  card.classList.add('flipped');
+  gFlipped.push(card);
+  if (gFlipped.length === 2) {
+    gMoves++;
+    document.getElementById('moveCount').textContent = gMoves;
+    gBusy = true;
+    setTimeout(checkPair, 700);
+  }
+}
+
+function checkPair() {
+  const [a, b] = gFlipped;
+  if (a.dataset.emoji === b.dataset.emoji) {
+    a.classList.add('matched'); b.classList.add('matched');
+    gMatched++;
+    document.getElementById('pairCount').textContent = gMatched;
+    if (gMatched === 8) setTimeout(showWin, 400);
+  } else {
+    a.classList.remove('flipped'); b.classList.remove('flipped');
+  }
+  gFlipped = []; gBusy = false;
+}
+
+function showWin() {
+  document.getElementById('winScore').textContent = `Lo lograste en ${gMoves} movimientos`;
+  document.getElementById('winScreen').classList.add('visible');
+  document.getElementById('restartBtn').style.display = 'none';
+  document.getElementById('gameDesc').style.display = 'none';
+  document.getElementById('memGrid').style.display = 'none';
+  document.getElementById('gameMeta').style.display = 'none';
+}
+
+initGame();
+</script>
+
+</body>
+</html>
